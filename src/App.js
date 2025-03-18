@@ -1,24 +1,29 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import BottomNav from "./components/BottomNavBar";
+import MenuPage from "./components/MenuPage";
+import MapPage from "./components/MapPage";
+import ProfilePage from "./components/ProfilePage";
+import DiscountPage from "./components/DiscountPage";
+import OrderHistory from "./components/OrderHistory";
+import "./css/App.css";
 
 function App() {
+  const [cartItems, setCartItems] = useState([]); 
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <BrowserRouter>
+      <main className="App">
+        <Routes>
+          <Route path="/" element={<MenuPage setCartItems={setCartItems} />} />
+          <Route path="/menu" element={<MenuPage setCartItems={setCartItems} />} />
+          <Route path="/discounts" element={<DiscountPage setCartItems={setCartItems} />} />
+          <Route path="/restaurants" element={<MapPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/order-history" element={<OrderHistory cartItems={cartItems} setCartItems={setCartItems}/>} />
+        </Routes>
+      </main>
+      <BottomNav cartItems={cartItems} setCartItems={setCartItems} />
+    </BrowserRouter>
   );
 }
 

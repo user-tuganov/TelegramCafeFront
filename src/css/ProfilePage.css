@@ -1,0 +1,44 @@
+.user-profile {
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  padding: 10px;
+  max-width: 500px;
+  margin: 0 auto;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.user-profile h2 {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.user-profile p {
+  font-size: 18px;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.user-profile strong {
+  font-weight: bold;
+  color: #333;
+}
+
+
+.history-button {
+  display: block;
+  padding: 10px;
+  margin-top: 10px;
+  font-size: 16px;
+  background: #E08D4D;
+  border: 1px solid #ff9800;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.order-history-container {
+  position: relative;
+}
