@@ -6,6 +6,7 @@ import MapPage from "./components/MapPage";
 import ProfilePage from "./components/ProfilePage";
 import DiscountPage from "./components/DiscountPage";
 import OrderHistory from "./components/OrderHistory";
+import Example from "./components/Example";
 import "./css/App.css";
 
 function App() {
@@ -18,8 +19,9 @@ function App() {
           <Route path="/menu" element={<MenuPage setCartItems={setCartItems} />} />
           <Route path="/discounts" element={<DiscountPage setCartItems={setCartItems} />} />
           <Route path="/restaurants" element={<MapPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile" element={<ProfilePage cartItems={cartItems} setCartItems={setCartItems}/>} />
           <Route path="/order-history" element={<OrderHistory cartItems={cartItems} setCartItems={setCartItems}/>} />
+          <Route path="/example" element={<Example/>} />
         </Routes>
       </main>
       <BottomNav cartItems={cartItems} setCartItems={setCartItems} />

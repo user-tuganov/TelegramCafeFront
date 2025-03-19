@@ -89,8 +89,6 @@ const products = [
       { size: "0.5 л", price: 230 },
     ],
     toppings: [
-      { id: 3, name: "Шоколад", price: 25 },
-      { id: 4, name: "Взбитые сливки", price: 30 },
     ],
   },
 ];

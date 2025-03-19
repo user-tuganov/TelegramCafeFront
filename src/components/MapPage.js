@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { YMaps, Map, Placemark } from "@pbe/react-yandex-maps";
 import "../css/MapPage.css";
 
 const map_api_key = "79bb29c4-85b6-4f7e-9347-017d762bf8ef";
+const suggest_api_key = "6f2ea778-ce03-4277-a7cb-c221ce62885e";
 
 const cafes = [
   { id: 1, address: "Москва, Тверская улица, 9" },
@@ -17,15 +18,14 @@ function MapPage({ onClose }) {
   const [confirmedAddress, setConfirmedAddress] = useState(
     localStorage.getItem("highlightedCafeId") || null
   );
-
-  const [searchQuery, setSearchQuery] = useState(""); 
-  const [searchResults, setSearchResults] = useState([]);
+  const inputRef = useRef(null);
+  const [coordinates, setCoordinates] = useState([55.75, 37.57]);
 
   useEffect(() => {
     if (confirmedAddress) {
-      const confirmedCafe = cafes.find((cafe) => cafe.address === confirmedAddress);
-      if (confirmedCafe) {
-        setSelectedCafe(confirmedCafe);
+      const cafe = cafes.find((cafe) => cafe.address === confirmedAddress);
+      if (cafe) {
+        setSelectedCafe(cafe);
       }
     }
   }, [confirmedAddress]);
@@ -37,8 +37,8 @@ function MapPage({ onClose }) {
         const res = await ymaps.geocode(cafe.address);
         const firstGeoObject = res.geoObjects.get(0);
         if (firstGeoObject) {
-          const coordinates = firstGeoObject.geometry.getCoordinates();
-          newPoints.push({ ...cafe, coordinates });
+          const coords = firstGeoObject.geometry.getCoordinates();
+          newPoints.push({ ...cafe, coordinates: coords });
         } else {
           console.warn(`Не удалось найти координаты для: ${cafe.address}`);
         }
@@ -50,7 +50,35 @@ function MapPage({ onClose }) {
   };
 
   const handleMapLoad = (ymaps) => {
+    console.log("Map loaded and ymaps available");
     fetchCoordinates(ymaps);
+
+    if (inputRef.current) {
+      console.log("Initializing SuggestView");
+      const provider = {
+        suggest: function (request, options) {
+          const results = cafes
+            .filter(cafe =>
+              cafe.address.toLowerCase().includes(request.toLowerCase())
+            )
+            .map(cafe => ({
+              displayName: cafe.address,
+              value: cafe.address,
+            }));
+          return ymaps.vow.resolve(results);
+        },
+      };
+
+      const suggestView = new ymaps.SuggestView(inputRef.current, { provider });
+      suggestView.events.add("select", (e) => {
+        const address = e.get("item").value;
+        const cafe = cafes.find(cafe => cafe.address === address);
+        if (cafe) {
+          setConfirmCafe({ address });
+          setIsModalVisible(true);
+        }
+      });
+    }
   };
 
   const handlePlacemarkClick = (cafe) => {
@@ -70,43 +98,19 @@ function MapPage({ onClose }) {
     setIsModalVisible(false);
   };
 
-
-
-  const handleSearchChange = async (event) => {
-    const query = event.target.value;
-    setSearchQuery(query);
-
-    if (query.length > 2) {
-      const ymaps = window.ymaps;
-      const suggest = new ymaps.suggest(query);
-      suggest.search().then((res) => {
-        const results = res.result.map((item) => ({
-          address: item.displayName,
-          coordinates: item.geometry.getCoordinates(),
-        }));
-        setSearchResults(results);
-      });
-    } else {
-      setSearchResults([]);
-    }
-  };
-
-  const handleSearchResultClick = (result) => {
-    setSearchQuery(result.address);
-    setSearchResults([]);
-    setConfirmedAddress(result.address);
-
-    // Устанавливаем маркер на выбранный адрес
-    setPoints([{ address: result.address, coordinates: result.coordinates }]);
-  };
-
-
   return (
     <div className="map-overlay">
       <div className="map-fullscreen">
-        <YMaps query={{ apikey: map_api_key, load: "geocode", lang: "ru_RU" }}>
+        <YMaps
+          query={{
+            apikey: map_api_key,
+            suggest_apikey: suggest_api_key,
+            load: "geocode,SuggestView",
+            lang: "ru_RU",
+          }}
+        >
           <Map
-            defaultState={{ center: [55.75, 37.57], zoom: 11 }}
+            defaultState={{ center: coordinates, zoom: 11 }}
             width="100%"
             height="100%"
             onLoad={handleMapLoad}
@@ -116,42 +120,30 @@ function MapPage({ onClose }) {
               <Placemark
                 key={cafe.id}
                 geometry={cafe.coordinates}
-                properties={{ balloonContent: cafe.name }}
+                properties={{ balloonContent: cafe.address }}
                 modules={["geoObject.addon.balloon", "geoObject.addon.hint"]}
                 options={{
-                  preset: confirmedAddress === cafe.address ? "islands#orangeIcon" : "islands#greyIcon",
+                  preset:
+                    confirmedAddress === cafe.address
+                      ? "islands#orangeIcon"
+                      : "islands#greyIcon",
                 }}
                 onClick={() => handlePlacemarkClick(cafe)}
               />
             ))}
           </Map>
         </YMaps>
+        {/* Поле ввода адреса поверх карты */}
+        <div className="search-container">
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder="Введите адрес кафе"
+          />
+        </div>
         <button className="close-map-button" onClick={onClose}>
           X
         </button>
-      </div>
-
-
-      <div className="search-container">
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={handleSearchChange}
-          placeholder="Введите адрес"
-        />
-        {searchQuery && (
-          <div className="search-results">
-            {searchResults.map((result, index) => (
-              <div
-                key={index}
-                className="search-result-item"
-                onClick={() => handleSearchResultClick(result)}
-              >
-                {result.address}
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
       {isModalVisible && confirmCafe && (
@@ -160,8 +152,12 @@ function MapPage({ onClose }) {
             <h3>Вы уверены, что хотите выбрать этот адрес?</h3>
             <p>{confirmCafe.address}</p>
             <div className="modal-buttons">
-              <button className="confirm-button" onClick={handleConfirm}>Подтвердить</button>
-              <button className="cancel-button" onClick={handleCancel}>Отмена</button>
+              <button className="confirm-button" onClick={handleConfirm}>
+                Подтвердить
+              </button>
+              <button className="cancel-button" onClick={handleCancel}>
+                Отмена
+              </button>
             </div>
           </div>
         </div>

@@ -10,7 +10,7 @@
 
 .order-card {
   padding: 15px;
-  margin: 15px 0;
+  margin: 15px 10px;
   border-radius: 8px;
   background: #f9f9f9;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -30,7 +30,7 @@
 }
 
 .order-status.cancelled {
-  background-color: red;
+  background-color: #ff4d4d;
   color: white;
 }
 
@@ -131,4 +131,3 @@
   text-decoration: none; 
   font-size: 20px;
 }
-
