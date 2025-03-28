@@ -1,47 +1,69 @@
 import React from "react";
 
 function OrderItem({ drink }) {
+  const product = drink.product;
+  const toppings = drink.cafeOrderProductToppings;
   return (
     <li className="cart-item">
-      <img src={drink.image} alt={drink.name} className="cart-item-img" />
+      <img src={product.imageURL} alt={product.name} className="cart-item-img" />
       <div className="cart-item-info">
-        <strong>{drink.name}</strong> ({drink.size}) - {drink.price}₽
-        {drink.toppings.length > 0 && (
+        <strong>{product.name}</strong> ({drink.size.text}) - {drink.size.price}₽
+        {toppings.length > 0 && (
           <ul className="cart-item-toppings">
-            {drink.toppings.map((topping) => (
+            {toppings.map((topping) => (
               <li key={topping.id} className="topping-item">
-                {topping.name} (+{topping.price}₽)
+                {topping.topping.name} (+{topping.topping.price}₽)
               </li>
             ))}
           </ul>
         )}
         <p>Количество: {drink.quantity}</p>
-        <p>Итого: {(drink.price + (drink.toppings?.reduce((sum, topping) => sum + topping.price, 0) || 0)) * drink.quantity}₽</p>
+        <p>Итого: {(drink.size.price + (toppings?.reduce((sum, topping) => sum + topping.price, 0) || 0)) * drink.quantity}₽</p>
       </div>
     </li>
   );
 }
 
+function calculateTotalPrice(promo) {
+  if (!promo || !promo.cafeOrderProducts) return 0;
 
-function OrderPromotion({ promo }) {
+  let total = promo.cafeOrderProducts.reduce((sum, drink) => {
+    let toppingPrice = 0;
+    if (Array.isArray(drink.cafeOrderProductToppings)) {
+      toppingPrice += drink.cafeOrderProductToppings.reduce((toppingSum, toppingDto) => toppingSum + toppingDto.topping.price, 0);
+    }
+
+    return sum + drink.size.price * (1 - promo.discount.discountPercentage) + toppingPrice;
+  }, 0);
+
+  if (promo.discount && promo.discount.discountValue) {
+    total -= promo.discount.discountValue;
+  }
+
+  return Math.max(total, 0);
+}
+
+function OrderDiscount({ promo }) {
+  const item = promo.discount;
+  const products = promo.cafeOrderProducts;
   return (
     <li className="cart-item">
-      <img src={promo.image} alt={promo.title} className="cart-item-img" />
+      <img src={item.imageURL} alt={item.name} className="cart-item-img" />
       <div className="cart-item-info">
-        <h4>{promo.title}</h4>
-        <p className="promo-description">{promo.description}</p>
-        {Array.isArray(promo.drinks) && promo.drinks.length > 0 && (
+        <h4>{item.name}</h4>
+        <p className="promo-description">{item.description}</p>
+        {Array.isArray(products) && products.length > 0 && (
           <ul className="cart-item-drinks">
-            {promo.drinks.map((drink) => (
-              <li key={drink.id}>
+            {products.map((drink) => (
+              <li key={drink.product.id}>
                 <p>
-                  <strong>{drink.name}</strong> ({drink.size}) - {drink.price}₽
+                  <strong>{drink.product.name}</strong> ({drink.size.text}) - {drink.size.price * (1 - item.discountPercentage)}₽
                 </p>
-                {Array.isArray(drink.toppings) && drink.toppings.length > 0 && (
+                {Array.isArray(drink.cafeOrderProductToppings) && drink.cafeOrderProductToppings.length > 0 && (
                   <ul className="cart-item-toppings">
-                    {drink.toppings.map((topping) => (
-                      <li key={topping.id} className="topping-item">
-                        {topping.name} (+{topping.price}₽)
+                    {drink.cafeOrderProductToppings.map((toppingDto) => (
+                      <li key={toppingDto.id} className="topping-item">
+                        {toppingDto.topping.name} (+{toppingDto.topping.price}₽)
                       </li>
                     ))}
                   </ul>
@@ -51,56 +73,72 @@ function OrderPromotion({ promo }) {
           </ul>
         )}
         <p>Количество: {promo.quantity}</p>
-        <p>Итого: {promo.discountPrice * promo.quantity}₽</p>
+        <p>Итого: {calculateTotalPrice(promo) * promo.quantity}₽</p>
       </div>
     </li>
   );
-}
+};
 
 function repeatOrder(order, cartItems, setCartItems) {
-
   const newCartItems = Array.isArray(cartItems) ? [...cartItems] : [];
+  order.products.forEach((drink) => {
+    const itemId = `${drink.product.id}-${drink.size.id}-${drink.cafeOrderProductToppings.map(t => t.topping.id).join("-")}`;
+    console.log(itemId);
+    const existingItemIndex = newCartItems.findIndex(item => item.id === itemId);
 
-  order.drinks.forEach((drink) => {
-    newCartItems.push({
-      id: `${drink.id}-${drink.size}-${drink.quantity}`,
-      productId: drink.id,
-      image: drink.image,
-      name: drink.name,
-      size: drink.size,
-      price: drink.price + (drink.toppings?.reduce((sum, topping) => sum + topping.price, 0) || 0),
-      quantity: drink.quantity,
-      toppings: drink.toppings || [],
-    });
-  });
-
-  order.promotions.forEach((promo) => {
-    newCartItems.push({
-      id: `promo-${promo.id}-${JSON.stringify(promo.drinks.reduce((sizes, drink) => {
-        sizes[drink.id] = drink.size;
-        return sizes;
-      }, {}))}-${JSON.stringify(promo.drinks.reduce((toppings, drink) => {
-        toppings[drink.id] = drink.toppings;
-        return toppings;
-      }, {}))}`,
-      promotionId: promo.id,
-      title: promo.title,
-      image: promo.image,
-      basePrice: promo.discountPrice,
-      quantity: promo.quantity,
-      totalPrice: promo.discountPrice * promo.quantity,
-      drinks: promo.drinks.map((drink) => ({
-        id: drink.id,
-        name: drink.name,
+    if (existingItemIndex !== -1) {
+      newCartItems[existingItemIndex].quantity += drink.quantity;
+    } else {
+      newCartItems.push({
+        id: itemId,
+        productId: drink.product.id,
+        imageURL: drink.product.imageURL,
+        name: drink.product.name,
         size: drink.size,
-        image: drink.image,
-        price: drink.price,
-        toppings: drink.toppings || [],
+        toppings: drink.cafeOrderProductToppings.map(item => item.topping) || [],
         quantity: drink.quantity,
-      })),
-    });
+        price: drink.size.price + (drink.cafeOrderProductToppings?.reduce((sum, item) => sum + (item.topping?.price || 0), 0) || 0)
+      });
+      console.log(newCartItems);
+    }
   });
+  order.discounts.forEach((promo) => {
+    const products = promo.cafeOrderProducts;
+    console.log(promo);
+    const productsId = products.map(item => item.size.id).join("-");
+    const toppings = products.map(item => item.cafeOrderProductToppings.map(item2 => item2.topping)).flat();
+    const toppingsId = toppings.map(item => item.id).join("-")
+    const promoId = `promo-${promo.discount.id}-${productsId}-${toppingsId}`;
+    console.log(promoId);
+
+
+    const existingPromoIndex = newCartItems.findIndex((item) => item.id === promoId);
+    const totalPrice = calculateTotalPrice(promo);
+
+    if (existingPromoIndex !== -1) {
+      newCartItems[existingPromoIndex].quantity += promo.quantity;
+      newCartItems[existingPromoIndex].totalPrice = totalPrice * newCartItems[existingPromoIndex].quantity;
+    } else {
+      newCartItems.push({
+        id: promoId,
+        discountId: promo.discount.id,
+        title: promo.discount.name,
+        image: promo.discount.imageURL,
+        quantity: promo.quantity,
+        totalPrice,
+        drinks: promo.cafeOrderProducts.map((drink) => ({
+          id: drink.product.id,
+          quantity: 1,
+          name: drink.product.name,
+          size: drink.size,
+          toppings: drink.cafeOrderProductToppings.map(item => item.topping) || []
+        })),
+      });
+    }
+  });
+
   setCartItems(newCartItems);
 }
 
-export { OrderItem, OrderPromotion, repeatOrder };
+
+export { OrderItem, OrderDiscount, repeatOrder };

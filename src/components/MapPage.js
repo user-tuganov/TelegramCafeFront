@@ -1,33 +1,86 @@
 import React, { useState, useEffect, useRef } from "react";
 import { YMaps, Map, Placemark } from "@pbe/react-yandex-maps";
+import axios from 'axios';
 import "../css/MapPage.css";
 
 const map_api_key = "79bb29c4-85b6-4f7e-9347-017d762bf8ef";
 const suggest_api_key = "6f2ea778-ce03-4277-a7cb-c221ce62885e";
 
-const cafes = [
-  { id: 1, address: "Москва, Тверская улица, 9" },
-  { id: 2, address: "Москва, Улица Шверника, 9" },
-];
+// const cafes = [
+//   { id: 1, address: "Москва, Тверская улица, 9" },
+//   { id: 2, address: "Москва, Улица Шверника, 9" },
+// ];
+const host = "http://localhost:8080";
+
+async function getCafes() {
+  try {
+    const response = await axios.get(host + `/map/cafe-addresses`);
+    if (response.status !== 200) {
+      console.log(response.status);
+    } else {
+      return response.data;
+    }
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+async function saveCurrentCafe(cafeId) {
+  try {
+    const initData = window.Telegram.WebApp.initData;
+    const params = new URLSearchParams(initData);
+    const userId = JSON.parse(params.get('user')).id;
+    const setCafeAddressDto = {
+      userId,
+      cafeId
+    };
+    const response = await axios.post(host + `/profile/set-address`, setCafeAddressDto);
+    if (response.status !== 200) {
+      console.log(response.status);
+    }
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+async function getCurrentCafe() {
+  try {
+    const initData = window.Telegram.WebApp.initData;
+    const params = new URLSearchParams(initData);
+    const userId = JSON.parse(params.get('user')).id;
+    const response = await axios.get(host + `/profile/get-address/${userId}`);
+    if (response.status !== 200) {
+      console.log(response.status);
+    } else {
+      return response.data;
+    }
+  } catch (err) {
+    console.log(err);
+  }
+}
 
 function MapPage({ onClose }) {
   const [points, setPoints] = useState([]);
-  const [selectedCafe, setSelectedCafe] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [confirmCafe, setConfirmCafe] = useState(null);
-  const [confirmedAddress, setConfirmedAddress] = useState(
-    localStorage.getItem("highlightedCafeId") || null
-  );
+  const [confirmedAddress, setConfirmedAddress] = useState(null);
   const inputRef = useRef(null);
   const [coordinates, setCoordinates] = useState([55.75, 37.57]);
+  const [cafes, setCafes] = useState([]);
 
   useEffect(() => {
-    if (confirmedAddress) {
-      const cafe = cafes.find((cafe) => cafe.address === confirmedAddress);
-      if (cafe) {
-        setSelectedCafe(cafe);
-      }
-    }
+    const fetchData = async () => {
+      setCafes(await getCafes());
+    };
+    fetchData();
+  }, [cafes]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setConfirmedAddress(await getCurrentCafe());
+    };
+
+    fetchData();
   }, [confirmedAddress]);
 
   const fetchCoordinates = async (ymaps) => {
@@ -50,11 +103,9 @@ function MapPage({ onClose }) {
   };
 
   const handleMapLoad = (ymaps) => {
-    console.log("Map loaded and ymaps available");
     fetchCoordinates(ymaps);
 
     if (inputRef.current) {
-      console.log("Initializing SuggestView");
       const provider = {
         suggest: function (request, options) {
           const results = cafes
@@ -74,7 +125,7 @@ function MapPage({ onClose }) {
         const address = e.get("item").value;
         const cafe = cafes.find(cafe => cafe.address === address);
         if (cafe) {
-          setConfirmCafe({ address });
+          setConfirmCafe(cafe);
           setIsModalVisible(true);
         }
       });
@@ -86,10 +137,9 @@ function MapPage({ onClose }) {
     setIsModalVisible(true);
   };
 
-  const handleConfirm = () => {
-    setSelectedCafe(confirmCafe);
-    setConfirmedAddress(confirmCafe.address);
-    localStorage.setItem("highlightedCafeId", confirmCafe.address);
+  const handleConfirm = async () => {
+    await saveCurrentCafe(confirmCafe.id);
+    setConfirmedAddress(confirmCafe);
     setIsModalVisible(false);
     onClose();
   };
@@ -124,7 +174,7 @@ function MapPage({ onClose }) {
                 modules={["geoObject.addon.balloon", "geoObject.addon.hint"]}
                 options={{
                   preset:
-                    confirmedAddress === cafe.address
+                    confirmedAddress.id === cafe.id
                       ? "islands#orangeIcon"
                       : "islands#greyIcon",
                 }}
@@ -133,7 +183,6 @@ function MapPage({ onClose }) {
             ))}
           </Map>
         </YMaps>
-        {/* Поле ввода адреса поверх карты */}
         <div className="search-container">
           <input
             ref={inputRef}

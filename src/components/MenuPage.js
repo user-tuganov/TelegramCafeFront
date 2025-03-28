@@ -1,150 +1,124 @@
 import React, { useState, useEffect } from "react";
+import axios from 'axios';
 import { Link } from "react-router-dom";
 import "../css/MenuPage.css";
 
-const products = [
-  {
-    id: 1,
-    name: "Капучино",
-    image: "https://statics.mixitup.ru/img/uploads/product2/xl/121/1564.jpg",
-    description: "Классический капучино с нежной молочной пенкой.",
-    sizes: [
-      { size: "0.3 л", price: 150 },
-      { size: "0.4 л", price: 180 },
-      { size: "0.5 л", price: 210 },
-    ],
-    toppings: [
-      { id: 1, name: "Сироп ваниль", price: 20 },
-      { id: 2, name: "Корица", price: 15 },
-    ],
-  },
-  {
-    id: 2,
-    name: "Латте",
-    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQHOWAuSVLJPEPUCxAhdjgTiaOLn_tdow7tiQ&s",
-    description: "Нежный латте с мягким вкусом и ароматом.",
-    sizes: [
-      { size: "0.3 л", price: 170 },
-      { size: "0.4 л", price: 200 },
-      { size: "0.5 л", price: 230 },
-    ],
-    toppings: [
-      { id: 3, name: "Шоколад", price: 25 },
-      { id: 4, name: "Взбитые сливки", price: 30 },
-    ],
-  },
-  {
-    id: 3,
-    name: "Латте",
-    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQHOWAuSVLJPEPUCxAhdjgTiaOLn_tdow7tiQ&s",
-    description: "Нежный латте с мягким вкусом и ароматом.",
-    sizes: [
-      { size: "0.3 л", price: 170 },
-      { size: "0.4 л", price: 200 },
-      { size: "0.5 л", price: 230 },
-    ],
-    toppings: [
-      { id: 3, name: "Шоколад", price: 25 },
-      { id: 4, name: "Взбитые сливки", price: 30 },
-    ],
-  },
-  {
-    id: 4,
-    name: "Латте",
-    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQHOWAuSVLJPEPUCxAhdjgTiaOLn_tdow7tiQ&s",
-    description: "Нежный латте с мягким вкусом и ароматом.",
-    sizes: [
-      { size: "0.3 л", price: 170 },
-      { size: "0.4 л", price: 200 },
-      { size: "0.5 л", price: 230 },
-    ],
-    toppings: [
-      { id: 3, name: "Шоколад", price: 25 },
-      { id: 4, name: "Взбитые сливки", price: 30 },
-    ],
-  },
-  {
-    id: 5,
-    name: "Латте",
-    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQHOWAuSVLJPEPUCxAhdjgTiaOLn_tdow7tiQ&s",
-    description: "Нежный латте с мягким вкусом и ароматом.",
-    sizes: [
-      { size: "0.3 л", price: 170 },
-      { size: "0.4 л", price: 200 },
-      { size: "0.5 л", price: 230 },
-    ],
-    toppings: [
-      { id: 3, name: "Шоколад", price: 25 },
-      { id: 4, name: "Взбитые сливки", price: 30 },
-    ],
-  },
-  {
-    id: 6,
-    name: "Латте",
-    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQHOWAuSVLJPEPUCxAhdjgTiaOLn_tdow7tiQ&s",
-    description: "Нежный латте с мягким вкусом и ароматом.",
-    sizes: [
-      { size: "0.3 л", price: 170 },
-      { size: "0.4 л", price: 200 },
-      { size: "0.5 л", price: 230 },
-    ],
-    toppings: [
-    ],
-  },
-];
+const host = "http://localhost:8080";
 
-function calculateTotalPrice(activeProduct, customization) {
-  if (!activeProduct || !customization.size) return 0;
+const groupProductsByCategory = (products) => {
+  return products.reduce((acc, product) => {
+    if (!acc[product.type]) acc[product.type] = [];
+    acc[product.type].push(product);
+    return acc;
+  }, {});
+};
 
-  const basePrice = activeProduct.sizes.find(s => s.size === customization.size)?.price || 0;
-  const toppingsPrice = customization.toppings.reduce((sum, topping) => sum + topping.price, 0);
-  return (basePrice + toppingsPrice) * customization.quantity;
+async function checkUser() {
+  try {
+    const initData = window.Telegram.WebApp.initData;
+    const params = new URLSearchParams(initData);
+    const userId = JSON.parse(params.get('user')).id;
+    const response = await axios.post(host + `/profile/check-user/${userId}`);
+    if (response.status != 200) {
+      console.log(response.status);
+    }
+  } catch (err) {
+    console.log(err);
+  }
 }
 
-function handleProductClick(product, setActiveProduct, setCustomization) {
-  setActiveProduct(product);
+async function getMenu() {
+  try {
+    const response = await axios.get(host + `/menu/get-products`);
+    if (response.status !== 200) {
+      console.log(response.status);
+    } else {
+      return response.data;
+    }
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+async function getProductDetails(productId) {
+  try {
+    const response = await axios.get(host + `/menu/get-products/${productId}`)
+    if (response.status !== 200) {
+      console.log(response.status);
+    } else {
+      return response.data;
+    }
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+
+function calculatePrice(activeProduct, customization) {
+  if (!activeProduct || !customization.size) return 0;
+
+  const basePrice = activeProduct.sizes.find((s) => s.id === customization.size.id)?.price || 0;
+  const toppingsPrice = customization.toppings.reduce((sum, topping) => sum + topping.price, 0);
+  return basePrice + toppingsPrice;
+}
+
+async function handleProductClick(productId, setActiveProduct, setCustomization) {
+  const productDetails = await getProductDetails(productId);
+  setActiveProduct(productDetails);
   setCustomization({
-    size: product.sizes[0].size,
+    size: productDetails.sizes[0],
     toppings: [],
     quantity: 1,
   });
 }
 
-function handleCloseDetail(setActiveProduct) {
-  document.querySelector(".product-detail").classList.remove("active");
-  setTimeout(() => setActiveProduct(null), 300);
-}
 
-function handleAddToCart(activeProduct, customization, setCartItems, setActiveProduct) {
+function handleAddToCart(activeProduct, customization, setActiveProduct) {
   const item = {
-    id: `${activeProduct.id}-${customization.size}-${customization.toppings.map(t => t.id).join("-")}`,
+    id: `${activeProduct.id}-${customization.size.id}-${customization.toppings.map(t => t.id).join("-")}`,
     productId: activeProduct.id,
-    image: activeProduct.image,
+    imageURL: activeProduct.imageURL,
     name: activeProduct.name,
     size: customization.size,
     toppings: customization.toppings,
     quantity: customization.quantity,
-    price: calculateTotalPrice(activeProduct, customization),
+    price: calculatePrice(activeProduct, customization),
   };
-  console.log(item);
 
-  setCartItems((prevItems) => {
-    const existingItem = prevItems.find((i) => i.id === item.id);
-    if (existingItem) {
-      return prevItems.map((i) =>
-        i.id === item.id ? { ...i, quantity: i.quantity + item.quantity } : i
-      );
-    } else {
-      return [...prevItems, item];
-    }
-  });
+  const cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
+  const existingItemIndex = cartItems.findIndex(i => i.id === item.id);
 
-  handleCloseDetail(setActiveProduct);
+  if (existingItemIndex !== -1) {
+    cartItems[existingItemIndex].quantity += item.quantity;
+  } else {
+    cartItems.push(item);
+  }
+
+  localStorage.setItem("cartItems", JSON.stringify(cartItems));
+  setActiveProduct(null);
 }
 
-function MenuPage({ setCartItems }) {
+function MenuPage() {
   const [activeProduct, setActiveProduct] = useState(null);
   const [customization, setCustomization] = useState({});
+  const [products, setProducts] = useState([]);
+  const [categorizedProducts, setCategorizedProducts] = useState({});
+
+
+  useEffect(() => {
+    const fetchData = async () => {
+      await checkUser();
+      setProducts(await getMenu());
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (products.length > 0) {
+      setCategorizedProducts(groupProductsByCategory(products));
+    }
+  }, [products]);
 
   useEffect(() => {
     if (activeProduct) {
@@ -154,46 +128,58 @@ function MenuPage({ setCartItems }) {
     }
   }, [activeProduct]);
 
+
   return (
     <div className="menu-page">
       <div className="menu-header">
-        <h1>Меню кофе</h1>
+        <h1>Меню</h1>
         <Link to="/profile" className="profile-button">☖</Link>
       </div>
 
-      <div className="product-list">
-        {products.map((product) => (
-          <div
-            key={product.id}
-            className="product-card"
-            onClick={() => handleProductClick(product, setActiveProduct, setCustomization)}
-          >
-            <img src={product.image} alt={product.name} className="product-image" />
-            <h2 className="product-name">{product.name}</h2>
-            <p className="product-price">от {product.sizes[0].price} руб.</p>
+      {Object.entries(categorizedProducts).map(([type, items]) => (
+        <div key={type} className="category-section">
+          <h2 className="category-title">{type}</h2>
+          <div className="product-list">
+            {items.map((product) => (
+              <div
+                key={product.id}
+                className="product-card"
+                onClick={async () => await handleProductClick(product.id, setActiveProduct, setCustomization)}
+              >
+                <img src={product.imageURL} alt={product.name} className="product-image" />
+                <h2 className="product-name">{product.name}</h2>
+                <p className="product-price">от {product.cheapestPrice} руб.</p>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
 
       {activeProduct && (
         <div className="product-detail">
-          <button className="close-button" onClick={() => handleCloseDetail(setActiveProduct)}>X</button>
-          <img src={activeProduct.image} alt={activeProduct.name} className="detail-image" />
+          <button className="close-button" onClick={() => setActiveProduct(null)}>X</button>
+          <img src={activeProduct.imageURL} alt={activeProduct.name} className="detail-image" />
           <h2>{activeProduct.name}</h2>
           <p>{activeProduct.description}</p>
 
           <div className="option-group">
             <p>Выберите размер:</p>
             <div className="size-buttons">
-              {activeProduct.sizes.map(({ size, price }) => (
-                <button
-                  key={size}
-                  className={`size-button ${customization.size === size ? "selected" : ""}`}
-                  onClick={() => setCustomization({ ...customization, size })}
-                >
-                  {size} ({price} руб.)
-                </button>
-              ))}
+              {(() => {
+                const buttons = [];
+                activeProduct.sizes.forEach((item) => {
+                  buttons.push(
+                    <button
+                      key={item.id}
+                      className={`size-button ${customization.size && customization.size.id === item.id ? "selected" : ""}`}
+                      onClick={() => setCustomization({ ...customization, size: item })}
+                    >
+                      {item.text} ({item.price} руб.)
+                    </button>
+                  );
+                });
+                return buttons;
+              })()}
             </div>
           </div>
 
@@ -231,8 +217,8 @@ function MenuPage({ setCartItems }) {
             </div>
           </div>
 
-          <button className="add-to-cart-button" onClick={() => handleAddToCart(activeProduct, customization, setCartItems, setActiveProduct)}>
-            Добавить в корзину ({calculateTotalPrice(activeProduct, customization)} руб.)
+          <button className="add-to-cart-button" onClick={() => handleAddToCart(activeProduct, customization, setActiveProduct)}>
+            Добавить в корзину ({calculatePrice(activeProduct, customization) * customization.quantity} руб.)
           </button>
         </div>
       )}
