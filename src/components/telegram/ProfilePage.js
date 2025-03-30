@@ -1,166 +1,11 @@
 import React, { useState, useEffect, use } from "react";
 import { Link } from "react-router-dom";
 import axios from 'axios';
-import "../css/ProfilePage.css";
+import "../../css/ProfilePage.css";
 
 import { OrderItem, OrderDiscount, repeatOrder } from "./OrderDetails";
 
-// const currentOrders = [
-//   {
-//     id: 1,
-//     number: "043",
-//     datetime: "2024-03-11 14:30",
-//     address: "Кофейня на Ленина, 12",
-//     total: 1280,
-//     status: "Оплачен",
-//     drinks: [
-//       {
-//         id: 1,
-//         name: "Капучино",
-//         size: "0.4 л",
-//         image: "https://statics.mixitup.ru/img/uploads/product2/xl/121/1564.jpg",
-//         toppings: [
-//           { id: 101, name: "Шоколадная крошка", price: 50 },
-//           { id: 102, name: "Карамельный сироп", price: 40 },
-//         ],
-//         price: 260,
-//         quantity: 1,
-//       },
-//       {
-//         id: 2,
-//         name: "Латте",
-//         size: "0.5 л",
-//         image: "https://statics.mixitup.ru/img/uploads/product2/xl/121/1564.jpg",
-//         toppings: [{ id: 103, name: "Ванильный сироп", price: 50 }],
-//         price: 240,
-//         quantity: 1,
-//       },
-//       {
-//         id: 3,
-//         name: "Американо",
-//         size: "0.3 л",
-//         image: "https://statics.mixitup.ru/img/uploads/product2/xl/121/1564.jpg",
-//         toppings: [],
-//         price: 150,
-//         quantity: 1,
-//       },
-//     ],
-//     promotions: [
-//       {
-//         id: 10,
-//         title: "Кофейная Тройка",
-//         description: "Три напитка по выгодной цене.",
-//         originalPrice: 900,
-//         discountPrice: 650,
-//         quantity: 1,
-//         image: "https://statics.mixitup.ru/img/uploads/product2/xl/121/1564.jpg",
-//         drinks: [
-//           {
-//             id: "10-101",
-//             name: "Капучино",
-//             size: "0.4 л",
-//             toppings: [
-//               { id: "10-101-1", name: "Шоколадная крошка", price: 50 },
-//               { id: "10-101-2", name: "Карамельный сироп", price: 40 },
-//             ],
-//             price: 260,
-//             quantity: 1,
-//           },
-//           {
-//             id: "10-102",
-//             name: "Латте",
-//             size: "0.5 л",
-//             toppings: [],
-//             price: 240,
-//             quantity: 1,
-//           },
-//         ],
-//       },
-//     ],
-//   },
-//   {
-//     id: 2,
-//     number: "043",
-//     datetime: "2024-03-08 10:15",
-//     address: "Кофейня на Пушкина, 5",
-//     total: 1050,
-//     status: "Готовится",
-//     drinks: [
-
-//     ],
-//     promotions: [
-//       {
-//         id: 12,
-//         title: "Сладкая парочка",
-//         description: "Латте и круассан по специальной цене.",
-//         originalPrice: 500,
-//         discountPrice: 350,
-//         quantity: 1,
-//         image: "https://statics.mixitup.ru/img/uploads/product2/xl/121/1564.jpg",
-//         drinks: [
-//           {
-//             id: "12-101",
-//             name: "Латте",
-//             size: "0.4 л",
-//             toppings: [{ id: "12-101-1", name: "Карамельный сироп", price: 50 }],
-//             price: 240,
-//             quantity: 1,
-//           },
-//           {
-//             id: "12-102",
-//             name: "Лимонад",
-//             size: "0.5 л",
-//             toppings: [{ id: "12-102-1", name: "Карамельный сироп", price: 50 }],
-//             price: 240,
-//             quantity: 2,
-//           },
-//         ],
-//       },
-//     ],
-//   },
-//   {
-//     id: 3,
-//     number: "043",
-//     datetime: "2024-03-08 10:15",
-//     address: "Кофейня на Пушкина, 5",
-//     total: 1050,
-//     status: "Готов к выдаче",
-//     drinks: [
-
-//     ],
-//     promotions: [
-//       {
-//         id: 12,
-//         title: "Сладкая парочка",
-//         description: "Латте и круассан по специальной цене.",
-//         originalPrice: 500,
-//         discountPrice: 350,
-//         quantity: 1,
-//         image: "https://statics.mixitup.ru/img/uploads/product2/xl/121/1564.jpg",
-//         drinks: [
-//           {
-//             id: "12-102",
-//             name: "Латте",
-//             size: "0.4 л",
-//             toppings: [{ id: "12-103-1", name: "Карамельный сироп", price: 50 }],
-//             price: 240,
-//             quantity: 1,
-//           },
-//           {
-//             id: "12-103",
-//             name: "Лимонад",
-//             size: "0.5 л",
-//             toppings: [{ id: "12-103-1", name: "Карамельный сироп", price: 50 }],
-//             price: 240,
-//             quantity: 2,
-//           },
-//         ],
-//       },
-//     ],
-//   },
-// ];
-
-const host = "http://localhost:8080";
+const host = process.env.REACT_APP_HOST_URL;
 
 async function getCurrentOrders(userId) {
   try {
@@ -177,14 +22,16 @@ async function getCurrentOrders(userId) {
 
 async function cancelOrder(orderId) {
   try {
-    const newOrderStatus = {
-      userId: 0,
+    const initData = window.Telegram.WebApp.initData;
+    const params = new URLSearchParams(initData);
+    const userId = JSON.parse(params.get('user')).id;
+
+    const orderStatusDto = {
+      userId,
       orderId,
       status: "Отменен"
     };
-    const response = await axios.get(host + `/order/set-status`, {
-      orderStatusDto: newOrderStatus
-    });
+    const response = await axios.post(host + `/order/set-status`, orderStatusDto);
     if (response.status !== 200) {
       console.log(response.status);
     }
@@ -193,8 +40,9 @@ async function cancelOrder(orderId) {
   }
 }
 
-function confirmCancelOrder(orderId, setCurrentOrders) {
-  cancelOrder(orderId);
+async function confirmCancelOrder(orderId, setCurrentOrders) {
+  console.log(orderId);
+  await cancelOrder(orderId);
   setCurrentOrders(prevOrders => prevOrders.filter(order => order.id !== orderId));
 }
 
@@ -311,9 +159,9 @@ function ProfilePage() {
         <div className="modal">
           <div className="modal-content">
             <h3>Отмена заказа</h3>
-            <p>Вы уверены, что хотите отменить заказ №{orderToCancel.number}?</p>
+            <p>Вы уверены, что хотите отменить заказ №{String(orderToCancel.orderNumber).padStart(3, "0")}?</p>
             <div className="modal-buttons">
-              <button className="confirm-btn" onClick={() => confirmCancelOrder(orderToCancel.id)}>
+              <button className="confirm-btn" onClick={() => { confirmCancelOrder(orderToCancel.id, setCurrentOrders); setOrderToCancel(null)} }>
                 Да, отменить
               </button>
               <button className="cancel-btn" onClick={() => setOrderToCancel(null)}>

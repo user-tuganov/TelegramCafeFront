@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "../css/DiscountPage.css";
+import "../../css/DiscountPage.css";
 
-const host = "http://localhost:8080";
+const host = process.env.REACT_APP_HOST_URL;
 
 async function getDiscounts() {
   try {

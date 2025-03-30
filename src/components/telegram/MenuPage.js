@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from 'axios';
 import { Link } from "react-router-dom";
-import "../css/MenuPage.css";
+import "../../css/MenuPage.css";
 
-const host = "http://localhost:8080";
+const host = process.env.REACT_APP_HOST_URL;
 
 const groupProductsByCategory = (products) => {
   return products.reduce((acc, product) => {

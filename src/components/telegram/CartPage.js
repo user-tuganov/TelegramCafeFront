@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from 'axios';
-import "../css/CartPage.css";
+import "../../css/CartPage.css";
+
+const host = process.env.REACT_APP_HOST_URL;
 
 function getCartItems() {
   return JSON.parse(localStorage.getItem("cartItems")) || [];
@@ -30,8 +32,6 @@ function handleQuantityChange(id, amount) {
   setCartItems(cartItems);
   window.dispatchEvent(new Event("storage"));
 }
-
-const host = "http://localhost:8080";
 
 async function saveNewOrder(newOrder) {
   try {

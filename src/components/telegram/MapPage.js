@@ -1,16 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { YMaps, Map, Placemark } from "@pbe/react-yandex-maps";
 import axios from 'axios';
-import "../css/MapPage.css";
+import "../../css/MapPage.css";
 
-const map_api_key = "79bb29c4-85b6-4f7e-9347-017d762bf8ef";
-const suggest_api_key = "6f2ea778-ce03-4277-a7cb-c221ce62885e";
+const map_api_key = process.env.REACT_MAP_API_TOKEN;
+const suggest_api_key = process.env.REACT_SUGGEST_API_TOKEN;
 
-// const cafes = [
-//   { id: 1, address: "Москва, Тверская улица, 9" },
-//   { id: 2, address: "Москва, Улица Шверника, 9" },
-// ];
-const host = "http://localhost:8080";
+const host = process.env.REACT_APP_HOST_URL;
 
 async function getCafes() {
   try {

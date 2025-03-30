@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import MapPage from "./MapPage";
 import CartPage from "./CartPage";
-import "../css/BottomNavBar.css";
+import "../../css/BottomNavBar.css";
 
 function BottomNav() {
   const [activeBlock, setActiveBlock] = useState(null);
