@@ -174,7 +174,7 @@ function MapPage({ onClose }) {
                 modules={["geoObject.addon.balloon", "geoObject.addon.hint"]}
                 options={{
                   preset:
-                    confirmedAddress.id === cafe.id
+                    confirmedAddress?.id === cafe.id
                       ? "islands#orangeIcon"
                       : "islands#greyIcon",
                 }}
