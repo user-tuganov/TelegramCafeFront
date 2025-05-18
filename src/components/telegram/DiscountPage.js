@@ -6,6 +6,7 @@ const host = process.env.REACT_APP_HOST_URL;
 
 async function getDiscounts() {
   try {
+    console.log(host)
     const response = await axios.get(host + `/discounts/get-discounts`);
     if (response.status === 200) {
       console.log(response.data);
@@ -138,7 +139,7 @@ function DiscountPage() {
 
   return (
     <div className="discounts-container">
-      {discounts != null && discounts.map((discount) => (
+      {discounts != [] && discounts.map((discount) => (
         <div
           key={discount.id}
           className="discount-card"
