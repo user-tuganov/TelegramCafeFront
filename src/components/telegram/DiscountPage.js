@@ -139,7 +139,7 @@ function DiscountPage() {
 
   return (
     <div className="discounts-container">
-      {discounts != [] && discounts.map((discount) => (
+      {Array.isArray(discounts) && discounts.length > 0 && discounts.map((discount) => (
         <div
           key={discount.id}
           className="discount-card"
