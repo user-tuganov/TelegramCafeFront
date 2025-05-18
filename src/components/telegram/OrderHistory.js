@@ -4,7 +4,7 @@ import axios from 'axios';
 import "../../css/OrderHistory.css";
 
 import { OrderItem, OrderDiscount, repeatOrder } from "./OrderDetails";
-import config from '../../../env.json';
+import config from '../../env.json';
 
 const host = config.REACT_APP_HOST_URL;
 

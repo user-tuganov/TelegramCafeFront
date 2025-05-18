@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import '../../css/LoginPage.css';
-import config from '../../../env.json';
+import config from '../../env.json';
 
 const host = config.REACT_APP_HOST_URL;
 

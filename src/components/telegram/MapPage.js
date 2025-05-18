@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { YMaps, Map, Placemark } from "@pbe/react-yandex-maps";
 import axios from 'axios';
 import "../../css/MapPage.css";
-import config from '../../../env.json';
+import config from '../../env.json';
 
 const map_api_key = config.REACT_MAP_API_TOKEN;
 const suggest_api_key = config.REACT_SUGGEST_API_TOKEN;
