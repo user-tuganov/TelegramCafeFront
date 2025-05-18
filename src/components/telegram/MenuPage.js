@@ -6,6 +6,7 @@ import "../../css/MenuPage.css";
 const host = process.env.REACT_APP_HOST_URL;
 
 const groupProductsByCategory = (products) => {
+  if (!products) return {};
   return products.reduce((acc, product) => {
     if (!acc[product.type]) acc[product.type] = [];
     acc[product.type].push(product);
@@ -108,7 +109,8 @@ function MenuPage() {
   useEffect(() => {
     const fetchData = async () => {
       await checkUser();
-      setProducts(await getMenu());
+      const menuData = await getMenu();
+      setProducts(menuData || []);
     };
 
     fetchData();
@@ -136,7 +138,7 @@ function MenuPage() {
         <Link to="/profile" className="profile-button">☖</Link>
       </div>
 
-      {Object.entries(categorizedProducts).map(([type, items]) => (
+      {categorizedProducts != {} && Object.entries(categorizedProducts).map(([type, items]) => (
         <div key={type} className="category-section">
           <h2 className="category-title">{type}</h2>
           <div className="product-list">
