@@ -186,7 +186,7 @@ function KitchenOrderPage() {
 
                         return (
                             <div key={order.id} className="order-card">
-                                <div className="order-summary" onClick={() => toggleOrder(order.id)}>
+                                <div className="order-summary">
                                     <div className="order-status-control">
                                         <span className={`order-status ${statusClass}`}>
                                             {order.status}
@@ -205,7 +205,7 @@ function KitchenOrderPage() {
                                         Заказ №{String(order.orderNumber).padStart(3, "0")} - {new Date(order.orderDateTime).toLocaleString("ru-RU")}
                                     </h3>
                                 </div>
-                                <div className="order-details" onClick={() => toggleOrder(order.id)}>
+                                <div className="order-details">
                                     {order.products.length > 0 && (
                                         <>
                                             <h4>Позиции:</h4>
