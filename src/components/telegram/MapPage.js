@@ -15,8 +15,6 @@ async function getCafes() {
     if (response.status !== 200) {
       console.log(response.status);
     } else {
-      console.log(map_api_key)
-      console.log(suggest_api_key)
       console.log(response.data)
       return response.data;
     }
