@@ -6,7 +6,10 @@ import "../../css/MenuPage.css";
 const host = process.env.REACT_APP_HOST_URL;
 
 const groupProductsByCategory = (products) => {
-  if (!products) return {};
+  if (!products || !Array.isArray(products)) {
+    console.warn('groupProductsByCategory: products is not an array', products);
+    return {};
+  }
   return products.reduce((acc, product) => {
     if (!acc[product.type]) acc[product.type] = [];
     acc[product.type].push(product);
