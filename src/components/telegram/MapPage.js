@@ -2,11 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import { YMaps, Map, Placemark } from "@pbe/react-yandex-maps";
 import axios from 'axios';
 import "../../css/MapPage.css";
+import config from '../../../env.json';
 
-const map_api_key = process.env.REACT_MAP_API_TOKEN;
-const suggest_api_key = process.env.REACT_SUGGEST_API_TOKEN;
+const map_api_key = config.REACT_MAP_API_TOKEN;
+const suggest_api_key = config.REACT_SUGGEST_API_TOKEN;
 
-const host = process.env.REACT_APP_HOST_URL;
+const host = config.REACT_APP_HOST_URL;
 
 async function getCafes() {
   try {

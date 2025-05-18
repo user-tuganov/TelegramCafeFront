@@ -4,8 +4,9 @@ import axios from 'axios';
 import "../../css/ProfilePage.css";
 
 import { OrderItem, OrderDiscount, repeatOrder } from "./OrderDetails";
+import config from '../../../env.json';
 
-const host = process.env.REACT_APP_HOST_URL;
+const host = config.REACT_APP_HOST_URL;
 
 async function getCurrentOrders(userId) {
   try {

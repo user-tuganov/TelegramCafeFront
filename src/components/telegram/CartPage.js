@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 import "../../css/CartPage.css";
+import config from '../../../env.json';
 
-const host = process.env.REACT_APP_HOST_URL;
+const host = config.REACT_APP_HOST_URL;
 
 function getCartItems() {
   return JSON.parse(localStorage.getItem("cartItems")) || [];

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../../css/DiscountPage.css";
+import config from '../../../env.json';
 
-const host = process.env.REACT_APP_HOST_URL;
+const host = config.REACT_APP_HOST_URL;
 
 async function getDiscounts() {
   try {

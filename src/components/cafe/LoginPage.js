@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import '../../css/LoginPage.css';
+import config from '../../../env.json';
 
-const host = process.env.REACT_APP_HOST_URL;
+const host = config.REACT_APP_HOST_URL;
 
 function LoginPage() {
   const [formData, setFormData] = useState({
